@@ -2,7 +2,7 @@ package admission
 
 import org.jsoup.Jsoup
 
-val checkingSnils = "179-225-859 11";
+const val checkingSnils = "179-225-859 11"
 // Контрольные цифры приема.
 val KCP = mapOf("11.03.01Радиотехника (Интеллектуальные радиотехнические системы)" to 60,
                 "11.03.01Радиотехника (Системы компьютерного зрения)" to 40,
@@ -31,7 +31,7 @@ val KCP = mapOf("11.03.01Радиотехника (Интеллектуальн�
                 "27.03.02Управление качеством" to 17,
                 "27.03.05Инноватика" to 10,
                 "42.03.01Реклама и связи с общественностью" to 20,
-                "45.03.02Лингвистика" to 25);
+                "45.03.02Лингвистика" to 25)
 
 fun main() {
 
@@ -40,21 +40,18 @@ fun main() {
 
     val doc = Jsoup.connect("http://etu.ru/ru/abiturientam/priyom-na-1-y-kurs/podavshie-zayavlenie/").get()   // <1>
 
-    val list = doc.select("div#content.col-sm-9").select("table").get(0).select("tbody").select("tr").select("tr")
+    val list = doc.select("div#content.col-sm-9").select("table")[0].select("tbody").select("tr").select("tr")
 
-    val directionList: MutableMap<Int, Direction> = mutableMapOf();
+    val directionList: MutableMap<Int, Direction> = mutableMapOf()
 
-    var i = 0;
+    var i = 0
     list.select("tr").forEach {
-        if (it.select("td").get(2).select("a").attr("href") != "") {
-            directionList.put(
-                ++i,
-                Direction(
-                    it.select("td").get(0).text(),
-                    it.select("td").get(1).text(),
-                    "http://etu.ru/"+it.select("td").get(2).select("a").attr("href"),
-                    KCP.get(it.select("td").get(0).text()+it.select("td").get(1).text()) ?: 0
-                )
+        if (it.select("td")[2].select("a").attr("href") != "") {
+            directionList[++i] = Direction(
+                it.select("td")[0].text(),
+                it.select("td")[1].text(),
+                "http://etu.ru/"+ it.select("td")[2].select("a").attr("href"),
+                KCP[it.select("td")[0].text()+ it.select("td")[1].text()] ?: 0
             )
         }
     }
@@ -63,26 +60,25 @@ fun main() {
         println(it.key.toString()+": "+it.value.code+" "+it.value.name+" "+it.value.url+" "+it.value.limit)
     }
 
-    println("Получено "+directionList.size+" направлений с непустыми списками. Загружаем абитуриентов");
+    println("Получено "+directionList.size+" направлений с непустыми списками. Загружаем абитуриентов")
 
     // загружаем абитуриентов
-    val abiturientList: MutableMap<String,Abiturient> = mutableMapOf();
+    val abiturientList: MutableMap<String,Abiturient> = mutableMapOf()
 
     for (direction in directionList) {
         println("Загружаем абитуриентов направления "+direction.value.code+" "+direction.value.name)
         val docAbit = Jsoup.connect(direction.value.url).get()
-        val directionName = docAbit.select("title").text();
-        println("Проверяем название направления: "+directionName)
-        val listAbit = docAbit.select("div#content.container").select("table").get(0).select("tbody").select("tr")
+        val directionName = docAbit.select("title").text()
+        println("Проверяем название направления: $directionName")
+        val listAbit = docAbit.select("div#content.container").select("table")[0].select("tbody").select("tr")
         //print(listAbit)
 
         var abiturientSum = 0
         listAbit.select("tr").forEach {
-            val snils = it.select("td").get(1).text()
-            val priority = it.select("td").get(2).text().toInt()
-            val egeSumText = it.select("td").get(4).text()
-            var egeSum = 0
-            if (egeSumText == "-") egeSum = 300 else egeSum =  egeSumText.toInt()
+            val snils = it.select("td")[1].text()
+            val priority = it.select("td")[2].text().toInt()
+            val egeSumText = it.select("td")[4].text()
+            val egeSum = if (egeSumText == "-") 300 else egeSumText.toInt()
 
             //println("SNILS= "+snils+" priority="+priority+" egeSum="+egeSum)
             if (abiturientList.containsKey(snils)) {
@@ -90,13 +86,13 @@ fun main() {
             }
             else
             {
-                val abiturientNew: Abiturient = Abiturient(snils,egeSum)
+                val abiturientNew = Abiturient(snils,egeSum)
                 abiturientNew.addDirection(direction.key,priority)
-                abiturientList.put(snils,abiturientNew)
+                abiturientList[snils] = abiturientNew
             }
             ++abiturientSum
         }
-        println("Обработано абитуриентов по направлению: "+abiturientSum)
+        println("Обработано абитуриентов по направлению: $abiturientSum")
     }
 
     println("Всего абитуриентов найдено: "+abiturientList.size)
@@ -104,16 +100,16 @@ fun main() {
     println("Сортируем абитуриентов")
 
     val abiturientSortedList = abiturientList.toList()
-        .sortedBy { (key, value) -> -value.egeSum }
+        .sortedBy { (_, value) -> -value.egeSum }
         .toMap()
 
     println("Всего абитуриентов отсортировано: "+abiturientSortedList.size)
 
-    println("Распределяем абитуриентов");
+    println("Распределяем абитуриентов")
 
-    var j = 0;
+    var j = 0
     for (abiturient in abiturientSortedList){
-        val sortedDirections = abiturient.value.directions.toList().sortedBy { (key, value) -> key }.toMap()
+        val sortedDirections = abiturient.value.directions.toList().sortedBy { (key, _) -> key }.toMap()
         //println("Abit=" + abiturient.key+" egeSum="+abiturient.value.egeSum)
         for (direction in sortedDirections) {
             //println("priority=" + direction.key + " direction="+direction.value+" name="+directionList[direction.value]?.code+" "+directionList[direction.value]?.name)
@@ -133,9 +129,9 @@ fun main() {
     }
 
 
-    val checkingAitDirection = abiturientList[checkingSnils]?.passedDirection ?: 0;
+    val checkingAitDirection = abiturientList[checkingSnils]?.passedDirection ?: 0
     if (checkingAitDirection == 0) {
-        println("Текущее состояние для "+checkingSnils+": не проходит")
+        println("Текущее состояние для $checkingSnils: не проходит")
     }
     else {
         println("Текущее состояние для "+checkingSnils+" (EGE: "+abiturientList[checkingSnils]?.egeSum+"): проходит на "+directionList[checkingAitDirection]?.code+" "+directionList[checkingAitDirection]?.name)
