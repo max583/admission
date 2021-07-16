@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="io.github.microutils:kotlin-logging:2.0.8" type="repository">
+    <properties maven-id="io.github.microutils:kotlin-logging:2.0.8" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/kotlin-logging-2.0.8.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/kotlin-stdlib-common-1.4.31.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
