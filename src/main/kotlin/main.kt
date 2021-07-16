@@ -1,16 +1,6 @@
 package admission
 
 import org.jsoup.Jsoup
-import kotlin.system.exitProcess
-
-
-data class MySimpleDataClass(
-    val httpStatusCode: Int,
-    val httpStatusMessage: String,
-    val paragraph: String,
-    val allParagraphs: List<String>,
-    val allLinks: List<String>
-)
 
 val checkingSnils = "179-225-859 11";
 // Контрольные цифры приема.
