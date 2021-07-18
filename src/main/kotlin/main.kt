@@ -1,6 +1,7 @@
 package admission
 
 import org.jsoup.Jsoup
+import java.time.LocalDateTime
 
 const val checkingSnils = "179-225-859 11"
 // Контрольные цифры приема.
@@ -36,6 +37,7 @@ val KCP = mapOf("11.03.01Радиотехника (Интеллектуальн�
 fun main() {
 
     // загружаем направления
+    println(LocalDateTime.now())
     println("Загружаем направления http://etu.ru")
 
     val doc = Jsoup.connect("http://etu.ru/ru/abiturientam/priyom-na-1-y-kurs/podavshie-zayavlenie/").get()   // <1>
@@ -93,6 +95,7 @@ fun main() {
             ++abiturientSum
         }
         println("Обработано абитуриентов по направлению: $abiturientSum")
+        Thread.sleep(1_000)
     }
 
     println("Всего абитуриентов найдено: "+abiturientList.size)
@@ -107,7 +110,7 @@ fun main() {
 
     println("Распределяем абитуриентов")
 
-    var j = 0
+   // var j = 0
     for (abiturient in abiturientSortedList){
         val sortedDirections = abiturient.value.directions.toList().sortedBy { (key, _) -> key }.toMap()
         //println("Abit=" + abiturient.key+" egeSum="+abiturient.value.egeSum)
