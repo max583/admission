@@ -40,7 +40,7 @@ fun main() {
     println(LocalDateTime.now())
     println("Загружаем направления http://etu.ru")
 
-    val doc = Jsoup.connect("http://etu.ru/ru/abiturientam/priyom-na-1-y-kurs/podavshie-zayavlenie/").get()   // <1>
+    val doc = Jsoup.connect("http://etu.ru/ru/abiturientam/priyom-na-1-y-kurs/podavshie-zayavlenie/").timeout(60*1000).get()   // <1>
 
     val list = doc.select("div#content.col-sm-9").select("table")[0].select("tbody").select("tr").select("tr")
 
@@ -78,18 +78,20 @@ fun main() {
         var abiturientSum = 0
         listAbit.select("tr").forEach {
             val snils = it.select("td")[1].text()
+            //if (snils == "158-637-894 28") println("Нашел 158-637-894 28!!!!")
             val priority = it.select("td")[2].text().toInt()
             val egeSumText = it.select("td")[4].text()
             val egeSum = if (egeSumText == "-") 300 else egeSumText.toInt()
+            val consent = it.select("td")[10].text() != "Нет"
 
             //println("SNILS= "+snils+" priority="+priority+" egeSum="+egeSum)
             if (abiturientList.containsKey(snils)) {
-                abiturientList[snils]?.addDirection(direction.key,priority)
+                abiturientList[snils]?.addDirection(direction.key,priority, consent)
             }
             else
             {
                 val abiturientNew = Abiturient(snils,egeSum)
-                abiturientNew.addDirection(direction.key,priority)
+                abiturientNew.addDirection(direction.key,priority, consent)
                 abiturientList[snils] = abiturientNew
             }
             ++abiturientSum
@@ -104,40 +106,41 @@ fun main() {
 
     val abiturientSortedList = abiturientList.toList()
         .sortedBy { (_, value) -> -value.egeSum }
-        .toMap()
+        .toMap().toMutableMap()
 
     println("Всего абитуриентов отсортировано: "+abiturientSortedList.size)
 
-    //val otsev = 1;
-    //println("Выкидываем "+otsev+" % абитуриентов");
+    val otsev = 0
+    println("Выкидываем $otsev% абитуриентов")
 
-    //repeat (otsev*abiturientSortedList.size/100){
-//        abiturientSortedList.minus(abiturientSortedList[0]?.snils)
-    //}
+    repeat (otsev*(abiturientSortedList.size-abiturientSortedList.keys.indexOf(checkingSnils))/100){
+        abiturientSortedList.remove(abiturientSortedList.keys.elementAt(0))
+    }
 
-    //println("Осталось абитуриентов: "+abiturientSortedList.size)
+    println("Осталось абитуриентов: "+abiturientSortedList.size)
 
     println("Распределяем абитуриентов")
 
    // var j = 0
+    val consentConsider = false // Учитывать согласие?
     for (abiturient in abiturientSortedList){
         val sortedDirections = abiturient.value.directions.toList().sortedBy { (key, _) -> key }.toMap()
-        //println("Abit=" + abiturient.key+" egeSum="+abiturient.value.egeSum)
-        for (direction in sortedDirections) {
-            //println("priority=" + direction.key + " direction="+direction.value+" name="+directionList[direction.value]?.code+" "+directionList[direction.value]?.name)
-            if (directionList[direction.value]?.isAvailable() == true) {
-                directionList[direction.value]?.addAbiturient(abiturient.value.egeSum,abiturient.value.snils)
-                abiturient.value.passDirection(direction.value)
+        //if (abiturient.key == "158-637-894 28") println("Abit=" + abiturient.key+" egeSum="+abiturient.value.egeSum)
+        for (direction in sortedDirections.filter { (_, value) -> value.consent||!consentConsider }) {
+            //if (abiturient.key == "158-637-894 28") println("priority=" + direction.key + " direction="+direction.value.direction+" name="+directionList[direction.value.direction]?.code+" "+directionList[direction.value.direction]?.name)
+            if (directionList[direction.value.direction]?.isAvailable() == true) {
+                directionList[direction.value.direction]?.addAbiturient(abiturient.value.egeSum,abiturient.value.snils)
+                abiturient.value.passDirection(direction.value.direction)
                 break
             }
         }
-        //println("passDirection=" + abiturient.value.passedDirection)
+        //if (abiturient.key == "158-637-894 28") println("passDirection=" + abiturient.value.passedDirection)
         //if (j++ > 1000) exitProcess(0)
     }
 
     println("Проходные баллы по направлениям")
     directionList.forEach {
-        println(it.value.code+" "+it.value.name+" "+it.value.passEge)
+        println(it.value.code+" "+it.value.name+" "+it.value.students.size+" "+it.value.passEge)
     }
 
 
@@ -161,4 +164,9 @@ fun main() {
     }
 
     println(LocalDateTime.now())
+
+    //println(abiturientList["158-637-894 28"])
+    //abiturientList["158-637-894 28"]?.directions?.forEach {
+    //    println(directionList[it.value.direction]?.code + " " + directionList[it.value.direction]?.name)
+    //}
 }
