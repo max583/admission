@@ -69,7 +69,7 @@ fun main() {
 
     for (direction in directionList) {
         println("Загружаем абитуриентов направления "+direction.value.code+" "+direction.value.name)
-        val docAbit = Jsoup.connect(direction.value.url).get()
+        val docAbit = Jsoup.connect(direction.value.url).timeout(60*1000).get()
         val directionName = docAbit.select("title").text()
         println("Проверяем название направления: $directionName")
         val listAbit = docAbit.select("div#content.container").select("table")[0].select("tbody").select("tr")
@@ -95,7 +95,7 @@ fun main() {
             ++abiturientSum
         }
         println("Обработано абитуриентов по направлению: $abiturientSum")
-        Thread.sleep(1_000)
+        //Thread.sleep(5_000)
     }
 
     println("Всего абитуриентов найдено: "+abiturientList.size)
@@ -107,6 +107,15 @@ fun main() {
         .toMap()
 
     println("Всего абитуриентов отсортировано: "+abiturientSortedList.size)
+
+    //val otsev = 1;
+    //println("Выкидываем "+otsev+" % абитуриентов");
+
+    //repeat (otsev*abiturientSortedList.size/100){
+//        abiturientSortedList.minus(abiturientSortedList[0]?.snils)
+    //}
+
+    //println("Осталось абитуриентов: "+abiturientSortedList.size)
 
     println("Распределяем абитуриентов")
 
@@ -134,7 +143,7 @@ fun main() {
 
     val checkingAitDirection = abiturientList[checkingSnils]?.passedDirection ?: 0
     if (checkingAitDirection == 0) {
-        println("Текущее состояние для $checkingSnils: не проходит")
+        println("Текущее состояние для " + checkingSnils+" (EGE: "+abiturientList[checkingSnils]?.egeSum+"): не проходит")
     }
     else {
         println("Текущее состояние для "+checkingSnils+" (EGE: "+abiturientList[checkingSnils]?.egeSum+"): проходит на "+directionList[checkingAitDirection]?.code+" "+directionList[checkingAitDirection]?.name)
@@ -151,4 +160,5 @@ fun main() {
         }
     }
 
+    println(LocalDateTime.now())
 }
