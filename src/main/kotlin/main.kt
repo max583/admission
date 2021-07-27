@@ -69,19 +69,36 @@ fun main() {
 
     for (direction in directionList) {
         println("Загружаем абитуриентов направления "+direction.value.code+" "+direction.value.name)
-        val docAbit = Jsoup.connect(direction.value.url).timeout(60*1000).get()
+        val docAbit = Jsoup.connect(direction.value.url).maxBodySize(0).timeout(60*1000).get()
         val directionName = docAbit.select("title").text()
         println("Проверяем название направления: $directionName")
         val listAbit = docAbit.select("div#content.container").select("table")[0].select("tbody").select("tr")
         //print(listAbit)
 
         var abiturientSum = 0
+        println(listAbit.size)
         listAbit.select("tr").forEach {
             val snils = it.select("td")[1].text()
             //if (snils == "158-637-894 28") println("Нашел 158-637-894 28!!!!")
             val priority = it.select("td")[2].text().toInt()
+            val uslovia = it.select("td")[3].text()
             val egeSumText = it.select("td")[4].text()
-            val egeSum = if (egeSumText == "-") 300 else egeSumText.toInt()
+
+            //println(snils)
+            //println(it.select("td").toString())
+
+            val idText = it.select("td")[8].text()
+            var egeSum = if (egeSumText == "-") 320 else egeSumText.toInt()
+            if (uslovia == "БВИ") {
+                egeSum = 320
+            }
+            if (uslovia == "ВК") {
+                egeSum = 300
+            }
+            if (uslovia == "ЦК") {
+                egeSum = 300
+            }
+            val id = if (idText == "-") 0 else idText.toInt()
             val consent = it.select("td")[10].text() != "Нет"
 
             //println("SNILS= "+snils+" priority="+priority+" egeSum="+egeSum)
@@ -90,7 +107,7 @@ fun main() {
             }
             else
             {
-                val abiturientNew = Abiturient(snils,egeSum)
+                val abiturientNew = Abiturient(snils,egeSum, id)
                 abiturientNew.addDirection(direction.key,priority, consent)
                 abiturientList[snils] = abiturientNew
             }
