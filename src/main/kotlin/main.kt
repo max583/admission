@@ -114,7 +114,6 @@ fun main() {
             ++abiturientSum
         }
         println("Обработано абитуриентов по направлению: $abiturientSum")
-        //Thread.sleep(5_000)
     }
 
     println("Всего абитуриентов найдено: "+abiturientList.size)
@@ -138,8 +137,8 @@ fun main() {
 
     println("Распределяем абитуриентов")
 
-   // var j = 0
     val consentConsider = false // Учитывать согласие?
+
     for (abiturient in abiturientSortedList){
         val sortedDirections = abiturient.value.directions.toList().sortedBy { (key, _) -> key }.toMap()
         //if (abiturient.key == "158-637-894 28") println("Abit=" + abiturient.key+" egeSum="+abiturient.value.egeSum)
@@ -152,7 +151,6 @@ fun main() {
             }
         }
         //if (abiturient.key == "158-637-894 28") println("passDirection=" + abiturient.value.passedDirection)
-        //if (j++ > 1000) exitProcess(0)
     }
 
     println("Проходные баллы по направлениям")
